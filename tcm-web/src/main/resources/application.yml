@@ -1,0 +1,25 @@
+server:
+  port: 5000
+
+spring:
+  devtools:
+    restart:
+      enabled: true
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://localhost:3307/tcm
+  elasticsearch:
+    rest:
+      uris: 81.71.124.182:9200
+
+secure:
+  ignored:
+    urls:
+      - /test/abc
+      - /auth/login
+  jwt:
+    tokenHeader: Authorization
+    secret: 1S4ez4c#iR2e$tzJ.c#$3i774Rext$ce523Aer^xd
+    expiration: 604800
+    tokenHead: 'Bearer '

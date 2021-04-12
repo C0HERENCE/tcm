@@ -1,8 +1,11 @@
 package cn.ccwisp.tcm.service;
 
+import cn.ccwisp.tcm.generated.domain.UmsUser;
+import cn.ccwisp.tcm.generated.service.impl.UmsUserServiceImpl;
 import cn.ccwisp.tcm.security.util.JwtTokenUtil;
 import cn.ccwisp.tcm.bo.TcmUserDetails;
 import cn.ccwisp.tcm.common.exception.Asserts;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -21,12 +24,19 @@ public class UserService{
     @Autowired
     JwtTokenUtil jwtTokenUtil;
 
+    @Autowired
+    UmsUserServiceImpl umsUserService;
+
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        TcmUserDetails tcmUserDetails = new TcmUserDetails();
-        tcmUserDetails.setUsername("123");
-        tcmUserDetails.setPassword(new BCryptPasswordEncoder().encode("4576"));
-        if (tcmUserDetails == null)
+        QueryWrapper<UmsUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        UmsUser umsUser = umsUserService.getOne(queryWrapper);
+        if (umsUser == null)
             throw new UsernameNotFoundException("该用户不存在");
+        TcmUserDetails tcmUserDetails = new TcmUserDetails();
+        tcmUserDetails.setUsername(umsUser.getUsername());
+        tcmUserDetails.setPassword(umsUser.getPassword());
+        tcmUserDetails.setEnabled(umsUser.getEnabled());
         return tcmUserDetails;
     }
 
@@ -48,4 +58,23 @@ public class UserService{
         }
         return token;
     }
+
+    public void Register(String email, String password) {
+        if (CheckUsernameExist(email))
+            Asserts.fail("该邮箱已被注册");
+        UmsUser user = new UmsUser();
+        user.setId(0);
+        user.setUsername(email);
+        user.setPassword(new BCryptPasswordEncoder().encode(password));
+        user.setEnabled(1);
+        umsUserService.save(user);
+    }
+
+    public boolean CheckUsernameExist(String username) {
+        QueryWrapper<UmsUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        UmsUser umsUser = umsUserService.getOne(queryWrapper);
+        return umsUser != null;
+    }
+
 }

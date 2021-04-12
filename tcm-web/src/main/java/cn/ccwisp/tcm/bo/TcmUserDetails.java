@@ -11,6 +11,8 @@ public class TcmUserDetails implements UserDetails {
     private String password;
     @Setter
     private String username;
+    @Setter
+    private int enabled;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
@@ -43,6 +45,6 @@ public class TcmUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled == 1;
     }
 }

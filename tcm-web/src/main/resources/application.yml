@@ -5,21 +5,35 @@ spring:
   devtools:
     restart:
       enabled: true
+      additional-paths: src/main/java
   datasource:
     username: root
     password: 123456
-    url: jdbc:mysql://localhost:3307/tcm
+    url: jdbc:mysql://localhost:3307/tcm_new
   elasticsearch:
     rest:
       uris: 81.71.124.182:9200
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: ccwisp@qq.com
+    password: eipcnjhykqwobfah
 
 secure:
   ignored:
     urls:
       - /test/abc
       - /auth/login
+      - /auth/captcha
+      - /auth/register
+      - /knowledge/categories
+      - /knowledge/category/*
   jwt:
     tokenHeader: Authorization
     secret: 1S4ez4c#iR2e$tzJ.c#$3i774Rext$ce523Aer^xd
     expiration: 604800
     tokenHead: 'Bearer '
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

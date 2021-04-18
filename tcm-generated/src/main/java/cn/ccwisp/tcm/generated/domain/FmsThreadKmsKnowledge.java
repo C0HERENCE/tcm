@@ -1,6 +1,5 @@
 package cn.ccwisp.tcm.generated.domain;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -9,31 +8,27 @@ import lombok.Data;
 
 /**
  * null
- * @TableName ums_user
+ * @TableName fms_thread_kms_knowledge
  */
-@TableName(value ="ums_user")
+@TableName(value ="fms_thread_kms_knowledge")
 @Data
-public class UmsUser implements Serializable {
+public class FmsThreadKmsKnowledge implements Serializable {
     /**
      * 
      */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
+    @TableId
+    private Integer threadid;
+
+    /**
+     * 
+     */
+    @TableField
+    private Integer knowledgeid;
 
     /**
      * 
      */
     private Integer enabled;
-
-    /**
-     * 
-     */
-    private String username;
-
-    /**
-     * 
-     */
-    private String password;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

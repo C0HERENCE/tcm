@@ -1,7 +1,7 @@
 package cn.ccwisp.tcm.config;
 
 import cn.ccwisp.tcm.security.config.SecurityConfig;
-import cn.ccwisp.tcm.service.UserService;
+import cn.ccwisp.tcm.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,11 +13,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 public class TcmSecurityConfig extends SecurityConfig {
 
     @Autowired
-    private UserService userService;
+    private AuthService authService;
 
     @Bean
     public UserDetailsService userDetailsService() {
         //获取登录用户信息
-        return username -> userService.loadUserByUsername(username);
+        return username -> authService.loadUserByUsername(username);
     }
 }

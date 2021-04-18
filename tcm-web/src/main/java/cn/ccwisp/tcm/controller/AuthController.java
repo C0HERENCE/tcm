@@ -4,7 +4,7 @@ import cn.ccwisp.tcm.common.api.CommonResult;
 import cn.ccwisp.tcm.dto.LoginParams;
 import cn.ccwisp.tcm.dto.LoginResponse;
 import cn.ccwisp.tcm.service.MailService;
-import cn.ccwisp.tcm.service.UserService;
+import cn.ccwisp.tcm.service.AuthService;
 import javafx.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 @RequestMapping("auth")
 public class AuthController {
     @Autowired
-    UserService userService;
+    AuthService authService;
 
     @Autowired
     MailService mailService;
@@ -35,7 +35,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public CommonResult Login(@RequestBody LoginParams loginParams){
-        String token = userService.Login(loginParams.getUsername(), loginParams.getPassword());
+        String token = authService.Login(loginParams.getUsername(), loginParams.getPassword());
         if (token == null)
             return CommonResult.badRequest("用户名或密码错误");
         LoginResponse loginResponse = new LoginResponse();
@@ -52,7 +52,7 @@ public class AuthController {
 
         if (!validateEmail(email))
             return CommonResult.badRequest("邮箱输入错误");
-        if (userService.CheckUsernameExist(email))
+        if (authService.CheckUsernameExist(email))
             return CommonResult.badRequest("该邮箱已被注册");
 
         mailService.send(email, "欢迎来到中医药科普平台", "你的验证码为：" + kv.getValue());
@@ -68,7 +68,7 @@ public class AuthController {
             return CommonResult.badRequest("邮箱输入错误");
         if (!new BCryptPasswordEncoder().matches(map.get("captcha"), k))
             return CommonResult.badRequest("验证码输入错误");
-        userService.Register(email, map.get("password"));
+        authService.Register(email, map.get("password"));
         return CommonResult.success("ok");
     }
 }

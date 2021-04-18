@@ -18,6 +18,11 @@ spring:
     port: 587
     username: ccwisp@qq.com
     password: eipcnjhykqwobfah
+  redis:
+    database: 0
+    port: 6379
+    host: 81.71.124.182
+    timeout: 150000
 
 secure:
   ignored:
@@ -28,6 +33,10 @@ secure:
       - /auth/register
       - /knowledge/categories
       - /knowledge/category/*
+      - /forum/category
+      - /forum/thread
+      - /forum/type
+      - /forum/thread/{threadId:\d+}
   jwt:
     tokenHeader: Authorization
     secret: 1S4ez4c#iR2e$tzJ.c#$3i774Rext$ce523Aer^xd

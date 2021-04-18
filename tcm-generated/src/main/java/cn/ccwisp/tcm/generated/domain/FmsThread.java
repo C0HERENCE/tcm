@@ -5,15 +5,16 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.util.Date;
 import lombok.Data;
 
 /**
  * null
- * @TableName ums_user
+ * @TableName fms_thread
  */
-@TableName(value ="ums_user")
+@TableName(value ="fms_thread")
 @Data
-public class UmsUser implements Serializable {
+public class FmsThread implements Serializable {
     /**
      * 
      */
@@ -23,17 +24,42 @@ public class UmsUser implements Serializable {
     /**
      * 
      */
+    private Integer authorid;
+
+    /**
+     * 
+     */
+    private String title;
+
+    /**
+     * 
+     */
+    private Date createtime;
+
+    /**
+     * 
+     */
+    private Date modifytime;
+
+    /**
+     * 
+     */
+    private String content;
+
+    /**
+     * 
+     */
+    private Integer categoryid;
+
+    /**
+     * 
+     */
+    private Integer typeid;
+
+    /**
+     * 
+     */
     private Integer enabled;
-
-    /**
-     * 
-     */
-    private String username;
-
-    /**
-     * 
-     */
-    private String password;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

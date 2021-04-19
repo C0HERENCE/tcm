@@ -9,7 +9,7 @@ spring:
   datasource:
     username: root
     password: 123456
-    url: jdbc:mysql://localhost:3307/tcm_new
+    url: jdbc:mysql://localhost:3307/tcm_new?useUnicode=true&characterEncoding=utf8
   elasticsearch:
     rest:
       uris: 81.71.124.182:9200

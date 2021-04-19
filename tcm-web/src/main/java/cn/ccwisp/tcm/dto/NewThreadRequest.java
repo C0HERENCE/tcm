@@ -8,6 +8,6 @@ import java.util.List;
 public class NewThreadRequest {
     private String title;
     private String content;
-    private int CategoryId;
+    private int categoryId;
     private List<Integer> relatedKnowledge;
 }

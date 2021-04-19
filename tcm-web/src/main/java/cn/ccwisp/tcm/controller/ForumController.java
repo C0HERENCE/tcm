@@ -2,10 +2,7 @@ package cn.ccwisp.tcm.controller;
 
 import cn.ccwisp.tcm.bo.TcmUserDetails;
 import cn.ccwisp.tcm.common.api.CommonResult;
-import cn.ccwisp.tcm.dto.FmsDetailResponse;
-import cn.ccwisp.tcm.dto.FmsResponse;
-import cn.ccwisp.tcm.dto.NewReplyRequest;
-import cn.ccwisp.tcm.dto.NewThreadRequest;
+import cn.ccwisp.tcm.dto.*;
 import cn.ccwisp.tcm.generated.domain.*;
 import cn.ccwisp.tcm.service.ForumService;
 import cn.ccwisp.tcm.service.RedisService;
@@ -93,7 +90,7 @@ public class ForumController {
 
     // 发布一个帖子
     @PostMapping("/thread/post")
-    public CommonResult<Object> postThread(@RequestBody NewThreadRequest newThreadRequest) {
+    public CommonResult<Integer> postThread(@RequestBody NewThreadRequest newThreadRequest) {
         TcmUserDetails principal = (TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         FmsThread fmsThread = new FmsThread();
         fmsThread.setId(0);
@@ -107,7 +104,7 @@ public class ForumController {
         fmsThread.setEnabled(1);
         int threadId = forumService.addNewThread(fmsThread);
         forumService.addRelatedKnowledge(threadId, newThreadRequest.getRelatedKnowledge());
-        return CommonResult.success("发布成功");
+        return CommonResult.success(threadId, "帖子发布成功");
     }
 
     // 发布一个评论
@@ -173,5 +170,12 @@ public class ForumController {
             return CommonResult.success("操作成功");
         }
         return CommonResult.badRequest("操作失败");
+    }
+
+    // TODO 获取作者的信息
+    @GetMapping("/thread/author/{id}")
+    public CommonResult<AuthorDto>(@PathVariable("id") int id) {
+        AuthorDto author = new AuthorDto();
+
     }
 }

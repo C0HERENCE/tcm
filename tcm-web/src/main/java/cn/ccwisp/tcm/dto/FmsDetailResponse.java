@@ -13,6 +13,6 @@ public class FmsDetailResponse {
     private int fav;
     private int liked;
     private int views;
-    private List<FmsComment> fmsComments;
+    private List<FmsCommentDto> fmsComments;
     private List<FmsThreadKmsKnowledge> fmsThreadKmsKnowledgeList;
 }

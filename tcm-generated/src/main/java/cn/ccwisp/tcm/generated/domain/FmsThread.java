@@ -13,12 +13,13 @@ import lombok.Data;
  * @TableName fms_thread
  */
 @TableName(value ="fms_thread")
+
 @Data
 public class FmsThread implements Serializable {
     /**
      * 
      */
-    @TableId(type = IdType.AUTO)
+    @TableId(type= IdType.AUTO)
     private Integer id;
 
     /**
@@ -60,6 +61,11 @@ public class FmsThread implements Serializable {
      * 
      */
     private Integer enabled;
+
+    /**
+     * 
+     */
+    private String topic;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,11 +20,14 @@ import java.util.regex.Pattern;
 @RestController
 @RequestMapping("auth")
 public class AuthController {
-    @Autowired
-    AuthService authService;
+    private final AuthService authService;
 
-    @Autowired
-    MailService mailService;
+    private final MailService mailService;
+
+    public AuthController(AuthService authService, MailService mailService) {
+        this.authService = authService;
+        this.mailService = mailService;
+    }
 
     private boolean validateEmail(String email) {
         if (null==email || "".equals(email))
@@ -35,13 +39,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public CommonResult Login(@RequestBody LoginParams loginParams){
-        String token = authService.Login(loginParams.getUsername(), loginParams.getPassword());
-        if (token == null)
+        Map result = authService.Login(loginParams.getUsername(), loginParams.getPassword());
+        if (result == null)
             return CommonResult.badRequest("用户名或密码错误");
-        LoginResponse loginResponse = new LoginResponse();
-        loginResponse.setToken(token);
-        loginResponse.setUsername(loginParams.getUsername().toLowerCase().trim());
-        return CommonResult.success(loginResponse);
+        return CommonResult.success(result);
     }
 
     @PostMapping("/captcha")

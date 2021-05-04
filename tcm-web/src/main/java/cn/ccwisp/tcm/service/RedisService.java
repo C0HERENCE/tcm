@@ -20,6 +20,11 @@ import java.util.*;
 @Service
 public class RedisService {
     private final String USER_LIKED_THREADS = "UserLikedThreads";
+    private final String USER_AGREE_COMMENTS = "UserAgreeComments";
+    private final String USER_DISAGREE_COMMENTS = "UserDisagreeComments";
+    private final String COMMENT_AGREE_SUM = "CommentAgreeSum";
+    private final String COMMENT_DISAGREE_SUM = "CommentDisagreeSum";
+    
     private final String USER_FAV_THREADS = "UserFavThreads";
     private final String USER_HISTORY = "UserHistory";
     private final String USER_CAPTCHA = "UserCaptcha";

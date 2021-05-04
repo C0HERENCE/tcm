@@ -6,10 +6,14 @@ import cn.ccwisp.tcm.dto.*;
 import cn.ccwisp.tcm.generated.domain.*;
 import cn.ccwisp.tcm.service.ForumService;
 import cn.ccwisp.tcm.service.RedisService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -34,6 +38,7 @@ public class ForumController {
             fmsResponse.setLike(redisService.GetLikeOfThread(fms.getId()));
             fmsResponse.setHaveFav(false);
             fmsResponse.setHaveLike(false);
+            fmsResponse.setTopic(fms.getTopic());
             if (SecurityContextHolder.getContext().getAuthentication().getPrincipal().getClass().getName().equals(TcmUserDetails.class.getName())) {
                 TcmUserDetails principal = (TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
                 if (principal != null) {
@@ -79,16 +84,23 @@ public class ForumController {
         Fms fms = forumService.getThreadById(threadId);
         if (fms == null)
             return CommonResult.badRequest("帖子不存在");
+        if (fms.getEnabled() != 1) {
+            return CommonResult.badRequest("无法查看该贴");
+        }
         fmsDetailResponse.setThread(fms);
         fmsDetailResponse.setFav(redisService.GetFavOfThread(fms.getId()));
         fmsDetailResponse.setViews(redisService.GetViewsOfThread(fms.getId()));
         fmsDetailResponse.setLiked(redisService.GetLikeOfThread(fms.getId()));
-        fmsDetailResponse.setFmsComments(forumService.getAllCommentsByThreadId(threadId));
+        int userId = -1;
+        if (SecurityContextHolder.getContext().getAuthentication().getPrincipal() != null)
+            userId = ((TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        fmsDetailResponse.setFmsComments(forumService.getAllCommentsByThreadId(threadId, userId));
         fmsDetailResponse.setFmsThreadKmsKnowledgeList(forumService.getRelatedKnowledge(threadId));
         return CommonResult.success(fmsDetailResponse);
     }
 
     // 发布一个帖子
+    @PreAuthorize("hasRole('post')")
     @PostMapping("/thread/post")
     public CommonResult<Integer> postThread(@RequestBody NewThreadRequest newThreadRequest) {
         TcmUserDetails principal = (TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -102,15 +114,19 @@ public class ForumController {
         fmsThread.setCategoryid(newThreadRequest.getCategoryId());
         fmsThread.setTypeid(1); // TODO
         fmsThread.setEnabled(1);
+        fmsThread.setTopic((newThreadRequest.getTopic()));
         int threadId = forumService.addNewThread(fmsThread);
+        // TODO 可删除relatedKnowledge
         forumService.addRelatedKnowledge(threadId, newThreadRequest.getRelatedKnowledge());
         return CommonResult.success(threadId, "帖子发布成功");
     }
 
     // 发布一个评论
+    @PreAuthorize("hasRole('comment')")
     @PostMapping("/thread/reply")
     public CommonResult<Object> postReply(@RequestBody NewReplyRequest newReplyRequest) {
         TcmUserDetails principal = (TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Collection<? extends GrantedAuthority> authorities = principal.getAuthorities();
         FmsComment fmsComment = new FmsComment();
         fmsComment.setId(0);
         fmsComment.setThreadid(newReplyRequest.getThreadId());
@@ -133,6 +149,7 @@ public class ForumController {
     }
 
     // 点赞一个帖子
+    @PreAuthorize("hasRole('action')")
     @PostMapping("/thread/like/{threadId}")
     public CommonResult<Object> likeThread(@PathVariable("threadId") int threadId) {
         TcmUserDetails principal = (TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -143,6 +160,7 @@ public class ForumController {
     }
 
     // 收藏一个帖子
+    @PreAuthorize("hasRole('action')")
     @PostMapping("/thread/fav/{threadId}")
     public CommonResult<Object> favThread(@PathVariable("threadId") int threadId) {
         TcmUserDetails principal = (TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -172,10 +190,31 @@ public class ForumController {
         return CommonResult.badRequest("操作失败");
     }
 
-    // TODO 获取作者的信息
-    @GetMapping("/thread/author/{id}")
-    public CommonResult<AuthorDto>(@PathVariable("id") int id) {
-        AuthorDto author = new AuthorDto();
-
+    @PreAuthorize("hasRole('action')")
+    @PostMapping("/thread/comment/{commentId}")
+    public CommonResult<Object> CommentAgreement(@PathVariable("commentId") int commentId, @RequestParam("agreement") int agreement) {
+        int userId = ((TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        boolean result = forumService.updateUserCommentAgreement(userId, commentId, agreement);
+        if (result) return CommonResult.success("操作成功"); else return CommonResult.badRequest("操作失败");
     }
+
+    @GetMapping("/thread/author/{id}")
+    public CommonResult<Ums> getAuthorInfoByThreadId(@PathVariable int id) {
+        Ums data = forumService.GetAuthorByThreadId(id);
+        return CommonResult.success(data);
+    }
+
+    @GetMapping("/my")
+    public CommonResult<Ums> getMyInfo() {
+        if (SecurityContextHolder.getContext().getAuthentication().getPrincipal() == null)
+            return null;
+        int userId = ((TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+        return CommonResult.success(forumService.GetPersonInfo(userId));
+    }
+
+    @GetMapping("/search")
+    public CommonResult<List<FmsResponse>> searchByKeyword(@RequestParam String keyword) {
+        return getFmsResponseListCommonResult(forumService.getFmsByKeyword(keyword));
+    }
+
 }

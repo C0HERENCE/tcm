@@ -8,7 +8,7 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * null
+ * 
  * @TableName ums_user
  */
 @TableName(value ="ums_user")

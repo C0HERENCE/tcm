@@ -22,7 +22,7 @@ public class FmsCategory implements Serializable {
     /**
      * 
      */
-    private String logo;
+    private String english;
 
     /**
      * 
@@ -33,6 +33,11 @@ public class FmsCategory implements Serializable {
      * 
      */
     private String intro;
+
+    /**
+     * 
+     */
+    private Integer enabled;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

@@ -1,13 +1,17 @@
 package cn.ccwisp.tcm.bo;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 
+@Accessors(chain = true)
 public class TcmUserDetails implements UserDetails {
     @Setter
     private String password;
@@ -19,9 +23,17 @@ public class TcmUserDetails implements UserDetails {
     @Getter
     private int userId;
 
+    @Setter
+    @Getter
+    private String userRoles;
+
+    @Getter
+    @Setter
+    private boolean isAdmin;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return AuthorityUtils.commaSeparatedStringToAuthorityList(userRoles);
     }
 
     @Override

@@ -62,11 +62,6 @@ public class Fms implements Serializable {
     /**
      * 
      */
-    private String categorylogo;
-
-    /**
-     * 
-     */
     private String categorytitle;
 
     /**
@@ -78,6 +73,31 @@ public class Fms implements Serializable {
      * 
      */
     private String typename;
+
+    /**
+     * 
+     */
+    private String avatar;
+
+    /**
+     * 
+     */
+    private String nickname;
+
+    /**
+     * 
+     */
+    private String topic;
+
+    /**
+     * 
+     */
+    private Integer categoryenabled;
+
+    /**
+     * 
+     */
+    private String categoryenglish;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

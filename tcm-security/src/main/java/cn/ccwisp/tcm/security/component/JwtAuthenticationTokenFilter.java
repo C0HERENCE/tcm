@@ -25,24 +25,29 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     @Autowired
     private JwtPropertiesConfig jwtPropertiesConfig;
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        String authHeader = request.getHeader(jwtPropertiesConfig.getTokenHeader());
-        if (authHeader != null && authHeader.startsWith(jwtPropertiesConfig.getTokenHead())) {
-            // 请求头中存在Token字段
-            String token = authHeader.substring(jwtPropertiesConfig.getTokenHead().length());
-            String username = jwtTokenUtil.getUserNameFromToken(token);
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // Token字段中存在用户名
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                if (jwtTokenUtil.validateToken(token)) {
-                    // Token校验通过
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-            }
-        }
-        chain.doFilter(request, response);
+@Override
+protected void doFilterInternal(HttpServletRequest request,
+                                HttpServletResponse response,
+                                FilterChain chain)
+            throws ServletException, IOException {
+String authHeader = request.getHeader(jwtPropertiesConfig.getTokenHeader());
+if (authHeader != null && authHeader.startsWith(jwtPropertiesConfig.getTokenHead())) {
+    // 请求头中存在Token字段
+    String token = authHeader.substring(jwtPropertiesConfig.getTokenHead().length());
+    String username = jwtTokenUtil.getUserNameFromToken(token);
+    if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        // Token字段中存在用户名
+    UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+    if (jwtTokenUtil.validateToken(token)) {
+        // Token校验通过
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userDetails, null,
+                        userDetails.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
+    }
+}
+chain.doFilter(request, response);
+}
 }

@@ -10,4 +10,5 @@ public class NewThreadRequest {
     private String content;
     private int categoryId;
     private List<Integer> relatedKnowledge;
+    private String topic;
 }

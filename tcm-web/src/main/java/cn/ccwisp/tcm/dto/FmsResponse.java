@@ -11,4 +11,5 @@ public class FmsResponse {
     private int views;
     private boolean haveFav;
     private boolean haveLike;
+    private String topic;
 }

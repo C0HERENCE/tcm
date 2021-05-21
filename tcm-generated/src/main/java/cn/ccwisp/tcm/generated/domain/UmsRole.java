@@ -9,11 +9,11 @@ import lombok.Data;
 
 /**
  * 
- * @TableName ums_user
+ * @TableName ums_role
  */
-@TableName(value ="ums_user")
+@TableName(value ="ums_role")
 @Data
-public class UmsUser implements Serializable {
+public class UmsRole implements Serializable {
     /**
      * 
      */
@@ -23,22 +23,7 @@ public class UmsUser implements Serializable {
     /**
      * 
      */
-    private Integer enabled;
-
-    /**
-     * 
-     */
-    private String username;
-
-    /**
-     * 
-     */
-    private String password;
-
-    /**
-     * 
-     */
-    private Integer isadmin;
+    private String name;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

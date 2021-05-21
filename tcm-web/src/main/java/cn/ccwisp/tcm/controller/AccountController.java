@@ -5,21 +5,12 @@ import cn.ccwisp.tcm.common.api.CommonResult;
 import cn.ccwisp.tcm.dto.profile.PersonalInfoDto;
 import cn.ccwisp.tcm.generated.domain.UmsUser;
 import cn.ccwisp.tcm.generated.domain.UmsUserinfo;
-import cn.ccwisp.tcm.generated.service.impl.UmsUserinfoServiceImpl;
 import cn.ccwisp.tcm.service.AccountService;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("account")
@@ -66,7 +57,7 @@ public class AccountController {
             return CommonResult.badRequest("该用户不存在");
         userinfo.setNickname(personalInfoDto.getNickname());
         userinfo.setEmail(personalInfoDto.getEmail());
-        userinfo.setRealname(personalInfoDto.getRealName());
+        userinfo.setRealname(personalInfoDto.getRealname());
         userinfo.setIntro(personalInfoDto.getIntro());
         userinfo.setQq(personalInfoDto.getQq());
         userinfo.setPhone(personalInfoDto.getTel());

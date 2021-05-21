@@ -12,7 +12,7 @@ spring:
     url: jdbc:mysql://localhost:3307/tcm_new?useUnicode=true&characterEncoding=utf8
   elasticsearch:
     rest:
-      uris: 81.71.124.182:9200 # 远程地址
+      uris: localhost:9200 # 远程地址
   mail:
     host: smtp.qq.com
     port: 587
@@ -21,7 +21,7 @@ spring:
   redis:
     database: 0
     port: 6379
-    host: 81.71.124.182
+    host: localhost
     timeout: 150000
 
 secure:
@@ -46,6 +46,7 @@ secure:
       - /forum/thread/{threadId:\d+}
       - /kaptcha/*
       - /account/avatar
+      - /admin/knowledge2
   jwt:
     tokenHeader: Authorization
     secret: 1S4ez4c#iR2e$tzJ.c#$3i774Rext$ce523Aer^xd

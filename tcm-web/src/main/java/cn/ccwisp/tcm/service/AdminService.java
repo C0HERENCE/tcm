@@ -2,7 +2,9 @@ package cn.ccwisp.tcm.service;
 
 
 import cn.ccwisp.tcm.bo.TcmUserDetails;
+import cn.ccwisp.tcm.common.api.CommonResult;
 import cn.ccwisp.tcm.common.exception.Asserts;
+import cn.ccwisp.tcm.dto.FmsCommentDto;
 import cn.ccwisp.tcm.generated.domain.*;
 import cn.ccwisp.tcm.generated.service.impl.*;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -11,6 +13,7 @@ import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +24,11 @@ import java.util.*;
 public class AdminService {
 
     private final UmsUserRoleServiceImpl userRoleService;
+    private final UmsRolesServiceImpl rolesService;
+    private final UmsRoleServiceImpl umsRoleService;
     private final UmsUserServiceImpl umsUserService;
+    private final UmsServiceImpl umsService;
     private final RestHighLevelClient restHighLevelClient;
-    private final UmsAdminLogsServiceImpl adminLogsService;
     private final FmsThreadServiceImpl threadService;
     private final FmsThreadTypeServiceImpl threadTypeService;
     private final FmsCommentServiceImpl commentService;
@@ -34,7 +39,42 @@ public class AdminService {
     public HashMap<AdminOp, String> LogMap;
 
     public List<KmsFeedback> getAllFeedback() {
-        return kmsFeedbackService.list();
+        return kmsFeedbackService.list(new QueryWrapper<KmsFeedback>().orderByDesc("createtime"));
+    }
+
+    public void processFeedback(int id, String note) {
+        TcmUserDetails user = (TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        KmsFeedback byId = kmsFeedbackService.getById(id);
+        byId.setNote(note);
+        byId.setProcessed(1);
+       kmsFeedbackService.updateById(byId);
+    }
+
+    public List<Ums> getAllAdmins() {
+        return umsService.list(new QueryWrapper<Ums>().eq("isAdmin", 1));
+    }
+
+    public List<UmsRoles> getUserRolesById(int userId) {
+        return rolesService.list(new QueryWrapper<UmsRoles>().eq("userId", userId));
+    }
+    private final FmsCommentServiceImpl fmsCommentService;
+    private final AccountService accountService;
+    public List<FmsCommentDto> getAllCommentsByThreadId(Integer threadId) {
+        QueryWrapper<FmsComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("threadId", threadId);
+        List<FmsCommentDto> result = new ArrayList<>();
+        for (FmsComment fmsComment : fmsCommentService.list(queryWrapper)) {
+            FmsCommentDto dto = new FmsCommentDto();
+            UmsUserinfo author = accountService.getUserInfoByUserId(fmsComment.getAuthorid());
+            dto.setAvatar(author.getAvatar());
+            dto.setFmsComment(fmsComment);
+            dto.setNickname(author.getNickname());
+            dto.setAgreed(-1);
+            dto.setEnabled(fmsComment.getEnabled());
+            result.add(dto);
+        }
+        return result;
     }
 
 
@@ -46,7 +86,7 @@ public class AdminService {
         Feedback,
     }
 
-    public AdminService(UmsUserRoleServiceImpl userRoleService, UmsUserServiceImpl umsUserService, RestHighLevelClient restHighLevelClient, UmsAdminLogsServiceImpl adminLogsService, FmsCategoryServiceImpl fmsCategoryService, FmsThreadServiceImpl fmsThreadService, FmsThreadTypeServiceImpl threadTypeService, FmsCommentServiceImpl commentService, FmsServiceImpl fmsService, KmsFeedbackServiceImpl kmsFeedbackService) {
+    public AdminService(UmsUserRoleServiceImpl userRoleService, UmsUserServiceImpl umsUserService, RestHighLevelClient restHighLevelClient, UmsAdminLogsServiceImpl adminLogsService, FmsCategoryServiceImpl fmsCategoryService, FmsThreadServiceImpl fmsThreadService, FmsThreadTypeServiceImpl threadTypeService, FmsCommentServiceImpl commentService, FmsServiceImpl fmsService, KmsFeedbackServiceImpl kmsFeedbackService, UmsRolesServiceImpl rolesService, UmsServiceImpl umsService, UmsRoleServiceImpl umsRoleService, FmsCommentServiceImpl fmsCommentService, AccountService accountService) {
         RoleMap = new HashMap<>();
         RoleMap.put("comment", 1);
         RoleMap.put("post", 2);
@@ -57,7 +97,6 @@ public class AdminService {
         this.userRoleService = userRoleService;
         this.umsUserService = umsUserService;
         this.restHighLevelClient = restHighLevelClient;
-        this.adminLogsService = adminLogsService;
         LogMap = new HashMap<>();
         LogMap.put(AdminOp.Es, "1");
         LogMap.put(AdminOp.CommentDelete, "2");
@@ -70,20 +109,29 @@ public class AdminService {
         this.commentService = commentService;
         this.fmsService = fmsService;
         this.kmsFeedbackService = kmsFeedbackService;
-    }
-
-    // 获取当前操作者id
-    private int getOperatorId() {
-        TcmUserDetails principal = (TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal == null)
-            Asserts.fail("管理员登录状态已生效");
-        return principal.getUserId();
+        this.rolesService = rolesService;
+        this.umsService = umsService;
+        this.umsRoleService = umsRoleService;
+        this.fmsCommentService = fmsCommentService;
+        this.accountService = accountService;
     }
 
     public List<UmsUserRole> getUserRoles(int userId) {
         QueryWrapper<UmsUserRole> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userId", userId);
         return userRoleService.list(queryWrapper);
+    }
+
+    public void setRole(int userId, List<String> roles) {
+        userRoleService.remove(new QueryWrapper<UmsUserRole>().eq("userId", userId));
+        for (String role : roles) {
+            UmsRole roleModel = umsRoleService.getOne(new QueryWrapper<UmsRole>().eq("name", role));
+            UmsUserRole umsUserRole = new UmsUserRole();
+            umsUserRole.setCreatetime(new Date());
+            umsUserRole.setRoleid(roleModel.getId());
+            umsUserRole.setUserid(userId);
+            userRoleService.save(umsUserRole);
+        }
     }
 
     // 授予权限（用户id， 权限id）
@@ -125,19 +173,6 @@ public class AdminService {
         m.put(field, text);
         restHighLevelClient.update(new UpdateRequest(index, id).doc(m), RequestOptions.DEFAULT);
         return 1;
-    }
-
-    // 添加一条操作记录（）
-    public void AddOperateLog(AdminOp type, String note, String id1, String id2) {
-        UmsAdminLogs umsAdminLogs = new UmsAdminLogs();
-        umsAdminLogs.setAdminid(getOperatorId());
-        umsAdminLogs.setType(LogMap.get(type));
-        umsAdminLogs.setCreatetime(new Date());
-        umsAdminLogs.setNote(note);
-        umsAdminLogs.setOp1(id1);
-        umsAdminLogs.setOp2(id2);
-        umsAdminLogs.setId(0);
-        adminLogsService.save(umsAdminLogs);
     }
 
     // 修改分类标题
@@ -214,5 +249,27 @@ public class AdminService {
             queryWrapper.eq("authorId", authorId);
         }
         return fmsService.list(queryWrapper);
+    }
+
+    public Map<String, Object> GetForumStatistics(){
+        Calendar calendar = Calendar.getInstance();
+
+        calendar.setTime(new Date());
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        Date zero = calendar.getTime();
+
+        calendar.add(Calendar.DATE, -1);
+        Date time = calendar.getTime();
+        Map<String, Object> map = new HashMap<>();
+        map.put("用户总数", umsUserService.count());
+        map.put("帖子总数", threadService.count());
+        map.put("今日发布", threadService.count(new QueryWrapper<FmsThread>()
+                .gt("createTime", zero)));
+        map.put("昨日发布", threadService.count(new QueryWrapper<FmsThread>()
+                .between("createTime", time, zero)
+        ));
+        return map;
     }
 }

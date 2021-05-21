@@ -5,11 +5,9 @@ import cn.ccwisp.tcm.generated.domain.Fms;
 import cn.ccwisp.tcm.generated.domain.UmsUser;
 import cn.ccwisp.tcm.generated.domain.UmsUserinfo;
 import cn.ccwisp.tcm.generated.service.impl.FmsServiceImpl;
-import cn.ccwisp.tcm.generated.service.impl.UmsServiceImpl;
 import cn.ccwisp.tcm.generated.service.impl.UmsUserServiceImpl;
 import cn.ccwisp.tcm.generated.service.impl.UmsUserinfoServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -27,7 +25,7 @@ public class AccountService {
     public PersonalInfoDto mappingUserinfoDto(UmsUserinfo userinfo) {
         PersonalInfoDto personalInfoDto = new PersonalInfoDto();
         personalInfoDto.setNickname(userinfo.getNickname());
-        personalInfoDto.setRealName(userinfo.getRealname());
+        personalInfoDto.setRealname(userinfo.getRealname());
         personalInfoDto.setEmail(userinfo.getEmail());
         personalInfoDto.setQq(userinfo.getQq());
         personalInfoDto.setTel(userinfo.getPhone());

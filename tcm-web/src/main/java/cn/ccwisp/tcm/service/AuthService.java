@@ -60,7 +60,7 @@ public class AuthService {
                 .setEnabled(umsUser.getEnabled())
                 .setPassword(umsUser.getPassword())
                 .setUsername(umsUser.getUsername())
-                .setAdmin(roles.toString().contains("ROLE_isAdmin"));
+                .setAdmin(umsUser.getIsadmin() != 0);
     }
 
     public Map<String, Object> Login(String username, String password) {

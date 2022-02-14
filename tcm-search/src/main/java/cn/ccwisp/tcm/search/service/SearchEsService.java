@@ -4,7 +4,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -13,73 +13,104 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class SearchEsService {
     private final RestHighLevelClient restHighLevelClient;
 
-    private final HighlightBuilder highlightBuilder = new HighlightBuilder()
-            .preTags("<em style=\"font-style:normal;color:red\">") // 高亮前缀
-            .postTags("</em>") // 高亮后缀
-            .field("chineseName")
-            .field("name")
-            .field("chinesename")
-            .field("intro")
-            .field("introduction");
-
     public SearchEsService(RestHighLevelClient restHighLevelClient) {
         this.restHighLevelClient = restHighLevelClient; // Spring Boot 注入的elasticsearch客户端
     }
-
     // 全局搜索功能
     public Map<String, Object> GlobalSearch(String keyword, int from, int size) throws IOException {
-
-        SearchResponse searchResponse = restHighLevelClient.search(
-                // 使用SearchRequest发起一个搜索请求， 传入要搜索的elasticsearch的index名
-                new SearchRequest("disease", "prescriptions", "herbs_info_v2")
-                        // 利用source 传入搜索源的条件
-                        .source(new SearchSourceBuilder()
-                                // from 参数为搜索结果的起始地址
-                                .from(from)
-                                // size 参数为搜索结果的最大结果条数
-                                .size(size)
-                                .query(QueryBuilders
-                                        // 使用elasticsearch的multiMatchQuery来匹配不同字段
-                                        .multiMatchQuery(keyword, "chineseName", "chinesename", "name", "introduction", "intro"))
-                                // fetchSource 传入的第一个参数是要查询字段的名称数组.
-                                .fetchSource(
-                                        // 全局搜索仅需要词条名称、图片、介绍即可。
-                                        new String[]{"id", "chinesename", "intro", "picturepath", "thumb", "introduction", "chineseName", "name"},
-                                        new String[]{""})
-                                // 可以利用 highlighter 实现搜索结果的高亮显示
-                                .highlighter(highlightBuilder)
-                        ), RequestOptions.DEFAULT);
+SearchResponse searchResponse = restHighLevelClient.search(
+        // 使用SearchRequest发起一个搜索请求， 传入要搜索的elasticsearch的index名
+new SearchRequest("disease", "prescriptions", "herbs_info_v2")
+    // 利用source 传入搜索源的条件
+.source(new SearchSourceBuilder()
+    // from 参数为搜索结果的起始地址
+    .from(from)
+    // size 参数为搜索结果的最大结果条数
+    .size(size)
+    .query(QueryBuilders
+            // 使用elasticsearch的multiMatchQuery来匹配不同字段
+            .multiMatchQuery(keyword, "chineseName",
+                    "chinesename", "name", "introduction", "intro"))
+    // fetchSource 传入的第一个参数是要查询字段的名称数组.
+    .fetchSource(
+            // 全局搜索仅需要词条名称、图片、介绍即可。
+            new String[]{"id","chinesename", "intro",
+                    "picturepath", "thumb", "introduction", "chineseName", "name"},
+            new String[]{""})
+    // 可以利用 highlighter 实现搜索结果的高亮显示
+    .highlighter(new HighlightBuilder()
+            .preTags("<em style=\"font-style:normal;color:red\">") // 高亮前缀
+            .postTags("</em>") // 高亮后缀
+            // 高亮字段
+            .field("chineseName").field("name")
+            .field("chinesename").field("introduction"))
+), RequestOptions.DEFAULT);
 // 调用getStringObjectMap函数将多个搜索结果成id为Key，结果为Value的哈希表
-        return getStringObjectMap(searchResponse, true);
+return getStringObjectMap(searchResponse);
     }
 
+    private Map<String, Object> getStringObjectMap(SearchResponse searchResponse) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (SearchHit hit : searchResponse.getHits().getHits()) {
+            Map<String, Object> map = hit.getSourceAsMap();
+            map.put("type", hit.getIndex());
+            Map<String, HighlightField> highlightFields = hit.getHighlightFields();
+            Map<String, Object> highlighter = new HashMap<>();
+            for (Map.Entry<String, HighlightField> stringHighlightFieldEntry : highlightFields.entrySet()) {
+                ArrayList<String> sFrag = new ArrayList<>();
+                for (Text fragment : stringHighlightFieldEntry.getValue().getFragments()) {
+                    sFrag.add(fragment.toString());
+                }
+                highlighter.put(stringHighlightFieldEntry.getKey(), sFrag);
+            }
+            if (highlightFields.size() > 0)
+                map.put("highlighter", highlighter);
+            else
+                map.put("highlighter", new ArrayList<>());
+            result.add(map);
+        }
+        Map<String, Object> ans = new HashMap<>();
+        ans.put("result", result);
+        ans.put("total", searchResponse.getHits().getTotalHits());
+        return ans;
+    }
+
+
     // 高级搜索
-    public Map<String, Object> AdvancedSearch(String[] indices, int from, int size, Map<String, List<String>> keywords, boolean highlight) throws IOException {
+    public Map<String, Object> AdvancedSearch(String[] indices, int from, int size, Map<String, List<String>> keywords) throws IOException {
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder()
                 .from(from)
                 .size(size)
                 .fetchSource(
                         new String[]{"id", "chinesename", "chineseName", "name", "intro", "introduction", "picturepath", "thumb", "picturePath", "thumbnail"},
                         new String[]{""})
-                .highlighter(highlightBuilder);
-        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+                .highlighter(new HighlightBuilder()
+                        .preTags("<em style=\"font-style:normal;color:red\">")
+                        .postTags("</em>")
+                        .field("chineseName")
+                        .field("name")
+                        .field("chinesename")
+                        .field("introduction"));
         for (Map.Entry<String, List<String>> keywordsFields : keywords.entrySet()) {
             String[] x = new String[keywordsFields.getValue().size()];
             keywordsFields.getValue().toArray(x);
-            boolQueryBuilder.should(QueryBuilders.multiMatchQuery(keywordsFields.getKey(), x));
+            sourceBuilder.query(QueryBuilders.multiMatchQuery(keywordsFields.getKey(), x));
         }
-        sourceBuilder.query(boolQueryBuilder);
         SearchResponse searchResponse = restHighLevelClient.search(new SearchRequest()
                 .indices(indices)
                 .source(sourceBuilder), RequestOptions.DEFAULT);
-        return getStringObjectMap(searchResponse, highlight);
+        return getStringObjectMap(searchResponse);
     }
+
 
     // 管理员高级搜索
     public Map<String, Object> AdminAdvancedSearch(String[] indices, int from, int size, Map<String, List<String>> keywords) throws IOException {
@@ -107,26 +138,4 @@ public class SearchEsService {
         ans.put("total", searchResponse.getHits().getTotalHits());
         return ans;
     }
-
-    private Map<String, Object> getStringObjectMap(SearchResponse searchResponse, boolean highlight) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (SearchHit hit : searchResponse.getHits().getHits()) {
-            Map<String, Object> map = hit.getSourceAsMap();
-            map.put("type", hit.getIndex());
-            if (highlight) {
-                Map<String, HighlightField> highlightFields = hit.getHighlightFields();
-                for (Map.Entry<String, HighlightField> stringHighlightFieldEntry : highlightFields.entrySet()) {
-                    map.put(stringHighlightFieldEntry.getKey(), stringHighlightFieldEntry.getValue().getFragments()[0].toString());
-                }
-            }
-
-
-            result.add(map);
-        }
-        Map<String, Object> ans = new HashMap<>();
-        ans.put("result", result);
-        ans.put("total", searchResponse.getHits().getTotalHits());
-        return ans;
-    }
-
 }

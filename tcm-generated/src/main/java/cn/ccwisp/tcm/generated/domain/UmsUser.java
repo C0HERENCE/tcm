@@ -35,11 +35,6 @@ public class UmsUser implements Serializable {
      */
     private String password;
 
-    /**
-     * 
-     */
-    private Integer isadmin;
-
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

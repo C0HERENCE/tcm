@@ -31,7 +31,6 @@ public class SearchController {
     @PostMapping("/advanced")
     public CommonResult<Map<String, Object>> advancedSearchResult(@RequestBody Map<String, Object> map)
             throws IOException {
-        boolean highlight = (boolean) map.get("highlight");
         int size = (int) map.get("size");
         int page = (int) map.get("page");
         ArrayList<String> array = (ArrayList<String>) map.get("indices");
@@ -47,15 +46,8 @@ public class SearchController {
                 treeValue.add("chinesename");
                 treeValue.add("name");
             }
-            if (treeValue.contains("introduction")) {
-                treeValue.add("intro");
-            }
-            if (treeValue.contains("mainattend")) {
-                treeValue.add("jattending");
-                treeValue.add("zattending");
-            }
             keywordFields.put((String) stringListMap.get("keyword"), treeValue);
         }
-        return CommonResult.success(searchEsService.AdvancedSearch(indices, page * size, size, keywordFields, highlight));
+        return CommonResult.success(searchEsService.AdvancedSearch(indices, page * size, size, keywordFields));
     }
 }

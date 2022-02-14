@@ -238,16 +238,4 @@ class TcmWebApplicationTests {
     void TranslateTest(){
         System.out.println(translateService.Translate("山不在高，有仙则灵.水不在深，有龙则灵可不可以要翻译斜杠啊！！！"));
     }
-
-    @Test
-    void jsonEsInsert() throws IOException {
-        String json = "{\n" +
-                "    \"id\": 1,\n" +
-                "    \"name\": \"批量添加测试1\"\n" +
-                "}";
-        restHighLevelClient.index(new IndexRequest("prescriptions")
-                .source(json, XContentType.JSON)
-                .id("1")
-                , RequestOptions.DEFAULT);
-    }
 }

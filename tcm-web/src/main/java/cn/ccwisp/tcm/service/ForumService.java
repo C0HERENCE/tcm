@@ -18,16 +18,18 @@ public class ForumService {
     private final FmsCategoryServiceImpl fmsCategoryService;
     private final FmsServiceImpl fmsService;
     private final FmsThreadServiceImpl fmsThreadService;
+    private final FmsThreadKmsKnowledgeServiceImpl fmsThreadKmsKnowledgeService;
     private final FmsCommentServiceImpl fmsCommentService;
     private final FmsThreadTypeServiceImpl threadTypeService;
     private final UmsCommentAgreementServiceImpl commentAgreementService;
     private final AccountService accountService;
     private final UmsServiceImpl umsService;
 
-    public ForumService(FmsCategoryServiceImpl fmsCategoryService, FmsServiceImpl fmsService, FmsThreadServiceImpl fmsThreadService, FmsCommentServiceImpl fmsCommentService, FmsThreadTypeServiceImpl threadTypeService, UmsCommentAgreementServiceImpl commentAgreementService, AccountService accountService, UmsServiceImpl umsService) {
+    public ForumService(FmsCategoryServiceImpl fmsCategoryService, FmsServiceImpl fmsService, FmsThreadServiceImpl fmsThreadService, FmsThreadKmsKnowledgeServiceImpl fmsThreadKmsKnowledgeService, FmsCommentServiceImpl fmsCommentService, FmsThreadTypeServiceImpl threadTypeService, UmsCommentAgreementServiceImpl commentAgreementService, AccountService accountService, UmsServiceImpl umsService) {
         this.fmsCategoryService = fmsCategoryService;
         this.fmsService = fmsService;
         this.fmsThreadService = fmsThreadService;
+        this.fmsThreadKmsKnowledgeService = fmsThreadKmsKnowledgeService;
         this.fmsCommentService = fmsCommentService;
         this.threadTypeService = threadTypeService;
         this.commentAgreementService = commentAgreementService;
@@ -56,6 +58,26 @@ public class ForumService {
     public int addNewThread(FmsThread fmsThread) {
         fmsThreadService.save(fmsThread);
         return fmsThread.getId();
+    }
+
+    public void addRelatedKnowledge(int t, List<Integer> k) {
+        List<FmsThreadKmsKnowledge> fmsThreadKmsKnowledgeList = new ArrayList<>();
+        for (Integer integer : k) {
+            FmsThreadKmsKnowledge fmsThreadKmsKnowledge = new FmsThreadKmsKnowledge();
+            fmsThreadKmsKnowledge.setThreadid(t);
+            fmsThreadKmsKnowledge.setKnowledgeid(integer);
+            fmsThreadKmsKnowledge.setEnabled(1);
+            fmsThreadKmsKnowledgeList.add(fmsThreadKmsKnowledge);
+        }
+        fmsThreadKmsKnowledgeService.saveBatch(fmsThreadKmsKnowledgeList);
+    }
+
+    public List<FmsThreadKmsKnowledge> getRelatedKnowledge(int threadId) {
+        QueryWrapper<FmsThreadKmsKnowledge> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("threadId", threadId)
+                .eq("enabled", 1);
+        return fmsThreadKmsKnowledgeService.list(queryWrapper);
     }
 
     public int addNewComment(FmsComment fmsComment) {

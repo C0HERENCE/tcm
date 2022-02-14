@@ -10,5 +10,4 @@ public class FmsCommentDto {
     String avatar;
     String nickname;
     int agreed;
-    int enabled = 1;
 }

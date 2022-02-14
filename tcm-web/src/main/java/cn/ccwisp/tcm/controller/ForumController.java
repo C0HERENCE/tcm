@@ -95,7 +95,7 @@ public class ForumController {
         if (SecurityContextHolder.getContext().getAuthentication().getPrincipal() != null)
             userId = ((TcmUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
         fmsDetailResponse.setFmsComments(forumService.getAllCommentsByThreadId(threadId, userId));
-//        fmsDetailResponse.setFmsThreadKmsKnowledgeList();
+        fmsDetailResponse.setFmsThreadKmsKnowledgeList(forumService.getRelatedKnowledge(threadId));
         return CommonResult.success(fmsDetailResponse);
     }
 
@@ -117,7 +117,7 @@ public class ForumController {
         fmsThread.setTopic((newThreadRequest.getTopic()));
         int threadId = forumService.addNewThread(fmsThread);
         // TODO 可删除relatedKnowledge
-//        forumService.addRelatedKnowledge(threadId, newThreadRequest.getRelatedKnowledge());
+        forumService.addRelatedKnowledge(threadId, newThreadRequest.getRelatedKnowledge());
         return CommonResult.success(threadId, "帖子发布成功");
     }
 

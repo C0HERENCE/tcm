@@ -2,11 +2,8 @@ package cn.ccwisp.tcm.controller;
 
 import cn.ccwisp.tcm.common.api.CommonResult;
 import cn.ccwisp.tcm.dto.LoginParams;
-import cn.ccwisp.tcm.dto.LoginResponse;
-import cn.ccwisp.tcm.service.MailService;
 import cn.ccwisp.tcm.service.AuthService;
-import javafx.util.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
+import cn.ccwisp.tcm.service.MailService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,7 +44,7 @@ public class AuthController {
 
     @PostMapping("/captcha")
     public CommonResult SendCaptcha(HttpSession session, @RequestBody HashMap<String,String> map){
-        Pair kv = mailService.generateCaptcha();
+        Map.Entry<String,String> kv = mailService.generateCaptcha();
         session.setAttribute("k", kv.getKey());
         String email = map.get("email");
 

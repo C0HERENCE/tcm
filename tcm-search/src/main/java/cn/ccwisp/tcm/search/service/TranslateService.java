@@ -11,13 +11,9 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class TranslateService {
-    // CC
-//    private static final String APP_ID = "20210423000795777";
-//    private static final String SECURITY_KEY = "rBjXkeJWh3lTRXkd9UKh";
-
     // PP
-    private static final String APP_ID = "20210425000799833";
-    private static final String SECURITY_KEY = "bsfDnJoykawZMn_mlZlN";
+    private static final String APP_ID = "baiduapiid";
+    private static final String SECURITY_KEY = "baiduapikey";
     private static long lastMilli = 0;
     // {"
     // from":"zh",

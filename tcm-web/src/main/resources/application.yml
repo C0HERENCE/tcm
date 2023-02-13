@@ -12,16 +12,16 @@ spring:
     url: jdbc:mysql://localhost:3307/tcm_new?useUnicode=true&characterEncoding=utf8
   elasticsearch:
     rest:
-      uris: 81.71.124.182:9200 # 远程地址
+      uris: 127.0.0.1:9200 # 远程地址
   mail:
-    host: smtp.qq.com
+    host: smtp.mail.com
     port: 587
-    username: ccwisp@qq.com
-    password: eipcnjhykqwobfah
+    username: example@mail.com
+    password: pwd
   redis:
     database: 0
     port: 6379
-    host: 81.71.124.182
+    host: 127.0.0.1
     timeout: 150000
 
 secure:
